@@ -435,6 +435,22 @@ int numero_maior(const Numero *numero1, const Numero *numero2, int *resultado)
 }
 
 
+// Operações com módulos
+int somar_modulos(
+    const Numero *numero1,
+    const Numero *numero2,
+    Numero **resultado) {}
+
+int subtrair_modulos(
+    const Numero *numero1,
+    const Numero *numero2,
+    Numero **resultado) {}
+
+// Soma considerando os sinais
+int numero_somar(const Numero *numero1, const Numero *numero2, Numero **resultado)
+{
+}
+
 
 
 
