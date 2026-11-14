@@ -18,59 +18,52 @@ typedef struct numero
     Posicao *ultima_posicao;   // Ponteiro para a última posicao
 } Numero;
 
+int numero_inserir_bloco(Numero *numero, int bloco)
+{
+  if(numero == NULL) return 0;
+  if(bloco < 0) bloco = bloco * -1;
 
-int numero_inserir_bloco(Numero *numero, int bloco){
+  Posicao *novo = malloc(sizeof(Posicao));
+  if(novo == NULL) return 0;
 
-    // INSERCAO SEMPRE FEITA NO INICIO  
+  novo->posicao_anterior = NULL;
+  novo->prox_posicao = numero->primeira_posicao;
+  novo->bloco = bloco;
 
-    if(numero == NULL) return 0;
+  if(numero->primeira_posicao != NULL){
+    numero->primeira_posicao->posicao_anterior = novo;
+  } else{
+    numero->ultima_posicao = novo;
+  }
 
-    if(bloco < 0) bloco = bloco * -1; // Garante armazamento do 
-    // valor inteiro positivo para controle de sinal na struct Numero
-    if(bloco > 9999) return 0;
-
-    Posicao *novo = malloc(sizeof(Posicao));
-    if(novo == NULL) return 0;
-
-    novo->bloco = bloco;
-    novo->posicao_anterior = NULL; // Como é o primeiro, não há nenhum elemento anterior a ele
-    novo->prox_posicao = numero->primeira_posicao; // A primeira posicao agora é a próxima do novo primeiro elemento
-
-    if(numero->primeira_posicao != NULL){
-        numero->primeira_posicao->posicao_anterior = novo; // Caso haja primeira posicao anteriomente, sua nova posicao anterior é a nova 
-    } else {
-        numero->ultima_posicao = novo; // Se não, com a lista vazia, a ultima posicao também é a primeira
-    }
-
-    numero->primeira_posicao = novo; 
-
-    return 1;
+  numero->primeira_posicao = novo;
+  return 1;
 }
-
 
 int numero_criar(Numero **numero, int sinal)
 {
-    if(sinal != 0 && sinal != 1) return 0;
+        if(sinal != 1 && sinal != 0) return 0;
+
     *numero = malloc(sizeof(Numero));
     if (*numero == NULL)
         return 0;
+
     (*numero)->primeira_posicao = NULL;
     (*numero)->ultima_posicao = NULL;
     (*numero)->sinal = sinal;
     return 1;
 }
+
 int numero_destruir(Numero **numero)
 {
-    if (numero == NULL || *numero == NULL)
-        return 0;
+    if(numero == NULL || *numero == NULL) return 0;
 
-    Posicao *atual = (*numero)->primeira_posicao;
+    Posicao *tmp = (*numero)->primeira_posicao;
 
-    while (atual != NULL)
-    {
-        Posicao *proximo = atual->prox_posicao;
-        free(atual);
-        atual = proximo;
+    while(tmp != NULL){
+        Posicao *aux = tmp->prox_posicao;
+        free(tmp);
+        tmp = aux;
     }
 
     free(*numero);
@@ -81,8 +74,6 @@ int numero_destruir(Numero **numero)
 
 int ler_numero(Numero *numero)
 {
-
-    // Observação: Caso a lista tenha blocos prévios, os novos são adicionados após eles
 
     // Analisando se o numero existe
     if (numero == NULL)
@@ -95,9 +86,7 @@ int ler_numero(Numero *numero)
     // Pulando caracteres não necessários
     int c = getchar();
     while (c == ' ' || c == '\n' || c == '\t' || c == '\r')
-    { // Aqui a ideia é que tudo o que não for numero ou sinal seja pulado, 
-     // já que o getchar lê um caractere, e o while faz ele continuar lendo (e apenas lendo)
-     //  até que nseja um sinal ou um numero
+    { // Aqui a ideia é que tudo o que não for numero ou sinal seja pulado, já que o getchar lê um caractere, e o while faz ele continuar lendo (e apenas lendo) até que nseja um sinal ou um numero
         c = getchar();
     }
 
@@ -202,7 +191,6 @@ int ler_numero(Numero *numero)
 
 int imprimir_numero(const Numero *numero)
 {
-
     if(numero == NULL) return 0;
 
     if (numero->sinal == 0)
@@ -210,13 +198,12 @@ int imprimir_numero(const Numero *numero)
         printf("-");
     }
 
-    const Posicao *tmp = numero->ultima_posicao;
+    Posicao *tmp = numero->ultima_posicao;
     printf("%d", tmp->bloco);
     tmp = tmp->posicao_anterior;
 
     while (tmp != NULL)
     {
-
         printf("%04d", tmp->bloco);
         tmp = tmp->posicao_anterior;
     }
@@ -224,7 +211,7 @@ int imprimir_numero(const Numero *numero)
     return 1;
 }
 
-// IMPORTANTE
+// IMPORTANTE!
 // Para todas as proximas funcoes, é preciso CRIAR UM NUMERO para o resultado. OU SEJA, chamem as funcoes: criar numero, ler numero e imprimir numero, para o resultado!
 
 //-1	Módulo do primeiro é menor
@@ -435,25 +422,29 @@ int numero_maior(const Numero *numero1, const Numero *numero2, int *resultado)
 }
 
 
+
+
+
+
+
+
 // Operações com módulos
 int somar_modulos(
     const Numero *numero1,
     const Numero *numero2,
-    Numero **resultado) {}
+    Numero **resultado) {
+        return 1;
+    }
 
 int subtrair_modulos(
     const Numero *numero1,
     const Numero *numero2,
-    Numero **resultado) {}
+    Numero **resultado) {
+        return 1;
+    }
 
 // Soma considerando os sinais
 int numero_somar(const Numero *numero1, const Numero *numero2, Numero **resultado)
 {
+    return 1;
 }
-
-
-
-
-
-
-
