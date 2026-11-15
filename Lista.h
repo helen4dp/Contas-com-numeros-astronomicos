@@ -1,5 +1,5 @@
-#ifndef NUMERO_H
-#define NUMERO_H
+#ifndef LISTA_H
+#define LISTA_H
 
 typedef struct numero Numero;
 

@@ -213,9 +213,6 @@ int imprimir_numero(const Numero *numero)
     return 1;
 }
 
-// IMPORTANTE!
-// Para todas as proximas funcoes, é preciso CRIAR UM NUMERO para o resultado. OU SEJA, chamem as funcoes: criar numero, ler numero e imprimir numero, para o resultado!
-
 //-1	Módulo do primeiro é menor
 // 0	Módulos iguais
 // 1	Módulo do primeiro é maior
