@@ -1,0 +1,16 @@
+Resultado:: 12
+Resultado:: 450
+Resultado:: 23111111110
+Resultado:: 101508708210268
+Resultado:: 2246915
+Resultado:: False
+Resultado:: False
+Resultado:: False
+Resultado:: True
+Resultado:: 100
+Resultado:: 116067
+Resultado:: False
+Resultado:: -7
+Resultado:: -13
+Resultado:: 0
+Resultado:: True
