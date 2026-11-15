@@ -1,57 +1,59 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "NumerosAstronomicos.h"
+#include "Lista.h"
 
-struct posicao
+typedef struct pos
 {
-    int bloco;                    // Bloco de 0 até 9999
-    struct posicao *prox_posicao; // Próximo bloco
-    struct posicao *posicao_anterior;
-};
+    int bloco;                     // Bloco de 0 até 9999
+    struct pos *prox_posicao; // Próximo bloco
+    struct pos *posicao_anterior; // Bloco anterior
+}Posicao;
 
-typedef struct posicao Posicao;
 
-typedef struct numero
+struct numero
 {
     int sinal;                 // 0 - Negativo; 1 - Positivo
     Posicao *primeira_posicao; // Ponteiro para a primeira posicao
     Posicao *ultima_posicao;   // Ponteiro para a última posicao
-} Numero;
+};
 
-int numero_inserir_bloco(Numero *numero, int bloco)
+int numero_inserir_bloco(Numero *n, int bloco)
 {
-  if(numero == NULL) return 0;
-  if(bloco < 0) bloco = bloco * -1;
+    if(n == NULL || bloco < 0 || bloco > 9999)
+    return 0;
 
-  Posicao *novo = malloc(sizeof(Posicao));
-  if(novo == NULL) return 0;
+    Posicao *novo = malloc(sizeof(Posicao));
+    if(novo == NULL) return 0;
 
-  novo->posicao_anterior = NULL;
-  novo->prox_posicao = numero->primeira_posicao;
-  novo->bloco = bloco;
+    novo->posicao_anterior = n->ultima_posicao;
+    novo->prox_posicao = NULL;
+    novo->bloco = bloco;
 
-  if(numero->primeira_posicao != NULL){
-    numero->primeira_posicao->posicao_anterior = novo;
-  } else{
-    numero->ultima_posicao = novo;
-  }
+    if (n->primeira_posicao == NULL)
+    {
+        n->primeira_posicao = novo;
+        n->ultima_posicao = novo;
+    }
+    else
+    {
+        n->ultima_posicao->prox_posicao = novo;
+        n->ultima_posicao = novo;
+    }
 
-  numero->primeira_posicao = novo;
-  return 1;
+    return 1;
 }
 
-int numero_criar(Numero **numero, int sinal)
+Numero *numero_criar(int sinal)
 {
-        if(sinal != 1 && sinal != 0) return 0;
+    if(sinal != 1 && sinal != 0) return NULL;
+    Numero *n = malloc(sizeof(Numero));
+    
+    if (!n) return NULL; //verificando se deu certo a alocação
 
-    *numero = malloc(sizeof(Numero));
-    if (*numero == NULL)
-        return 0;
-
-    (*numero)->primeira_posicao = NULL;
-    (*numero)->ultima_posicao = NULL;
-    (*numero)->sinal = sinal;
-    return 1;
+    n->primeira_posicao = NULL;
+    n->ultima_posicao = NULL;
+    n->sinal = sinal;
+    return n;
 }
 
 int numero_destruir(Numero **numero)
@@ -191,7 +193,7 @@ int ler_numero(Numero *numero)
 
 int imprimir_numero(const Numero *numero)
 {
-    if(numero == NULL) return 0;
+    if(numero == NULL || numero->primeira_posicao == NULL || numero->ultima_posicao == NULL) return 0;
 
     if (numero->sinal == 0)
     {
@@ -421,30 +423,177 @@ int numero_maior(const Numero *numero1, const Numero *numero2, int *resultado)
     return 1;
 }
 
-
-
-
-
-
-
-
 // Operações com módulos
-int somar_modulos(
-    const Numero *numero1,
-    const Numero *numero2,
-    Numero **resultado) {
-        return 1;
+Numero *somar_modulos(const Numero *numero1, const Numero *numero2) {
+    if (!numero1 || !numero2) return NULL; 
+    if (!numero1->primeira_posicao || !numero2->primeira_posicao) return NULL; //verifica se ta vazio
+    
+    Numero *resultado = numero_criar(numero1->sinal);
+    if (!resultado) return NULL;
+
+    Posicao *tmp1 = numero1->primeira_posicao; //ponteiros temporários para percorrer os números
+    Posicao *tmp2 = numero2->primeira_posicao;
+         
+    int carry = 0; 
+
+    while(tmp1 != NULL || tmp2 != NULL || carry != 0){  //inicio da soma -> necessario percorrer numeros
+        int bloco1 = 0, bloco2 = 0;
+
+        //pegando os blocos de cada número
+        if(tmp1 != NULL){
+            bloco1 = tmp1->bloco;
+            tmp1 = tmp1->prox_posicao;
+        }
+
+        if(tmp2 != NULL){
+            bloco2 = tmp2->bloco;
+            tmp2 = tmp2->prox_posicao;
+        }
+
+        int soma = bloco1 + bloco2 + carry;
+        int novo_bloco = soma % 10000; //o maximo é 9999 em um bloco
+        carry = soma / 10000;
+
+        if(numero_inserir_bloco(resultado, novo_bloco) == 0){ //caso não dê certo de inserir o bloco
+            numero_destruir(&resultado);
+            return NULL;
+        }
     }
 
-int subtrair_modulos(
-    const Numero *numero1,
-    const Numero *numero2,
-    Numero **resultado) {
-        return 1;
+    return resultado;
+}
+
+Numero *subtrair_modulos(const Numero *numero1, const Numero *numero2) { //subtracao = bloco1 - bloco2 - borrow
+    if (!numero1 || !numero2) return NULL; 
+    if (!numero1->primeira_posicao || !numero2->primeira_posicao) return NULL; //verifica se ta vazio
+    
+    // É preciso garantir que o primeiro número possui módulo maior ou igual ao do segundo
+    int comparacao;
+    if (!numero_comparar_modulo(numero1, numero2, &comparacao))
+        return NULL;
+
+    if (comparacao < 0)
+        return NULL;
+
+
+    Numero *resultado = numero_criar(numero1->sinal);
+    if (!resultado) return NULL;
+
+    Posicao *tmp1 = numero1->primeira_posicao; //ponteiros temporários para percorrer os números
+    Posicao *tmp2 = numero2->primeira_posicao;
+         
+    int borrow = 0;
+    
+    while(tmp1 != NULL){
+        //pegando os blocos de cada número
+        int bloco1 = tmp1->bloco;
+        tmp1 = tmp1->prox_posicao;
+
+        int bloco2 = 0;
+        if(tmp2 != NULL){
+            bloco2 = tmp2->bloco;
+            tmp2 = tmp2->prox_posicao;
+        }
+
+        int diferenca = bloco1 - bloco2 - borrow;
+        if(diferenca < 0){
+            diferenca += 10000;
+            borrow = 1;
+        } else borrow = 0;
+
+        if(numero_inserir_bloco(resultado, diferenca) == 0){ //caso não dê certo de inserir o bloco
+            numero_destruir(&resultado);
+            return NULL;
+        }
     }
+    //a partir daqui já acabou a subtração, agora é só remover 0s desnecessários
+
+    Posicao *atual = resultado->primeira_posicao; //bloco menos significativo
+    Posicao *ultimo_nao_zero = NULL;
+    
+    while (atual != NULL) //percorrendo o resultado
+    {
+        if (atual->bloco != 0)
+            ultimo_nao_zero = atual;
+
+        atual = atual->prox_posicao;
+    }
+
+    //se todos os blocos forem 0, manter apenas o primeiro bloco e liberar o restante
+    if (ultimo_nao_zero == NULL)
+    {
+        Posicao *tmp = resultado->primeira_posicao->prox_posicao;
+
+        while (tmp != NULL)
+        {
+            Posicao *aux = tmp->prox_posicao;
+            free(tmp);
+            tmp = aux;
+        }
+
+        resultado->primeira_posicao->prox_posicao = NULL;
+        resultado->primeira_posicao->posicao_anterior = NULL;
+        resultado->ultima_posicao = resultado->primeira_posicao; //ou seja, o próprio 0
+    }
+    else
+    {
+        // Liberando os blocos que vêm depois do último não zero
+        Posicao *tmp = ultimo_nao_zero->prox_posicao;
+
+        while (tmp != NULL)
+        {
+            Posicao *aux = tmp->prox_posicao;
+            free(tmp);
+            tmp = aux;
+        }
+
+        ultimo_nao_zero->prox_posicao = NULL;
+        resultado->ultima_posicao = ultimo_nao_zero;
+    }
+
+    return resultado;
+}
 
 // Soma considerando os sinais
-int numero_somar(const Numero *numero1, const Numero *numero2, Numero **resultado)
-{
-    return 1;
+Numero *numero_somar(const Numero *numero1, const Numero *numero2){
+    if(!numero1 || !numero2) return NULL;
+    
+    if (!numero1->primeira_posicao || !numero2->primeira_posicao) return NULL; //verifica se ta vazio
+
+    Numero *resultado;
+    int mod_ref; 
+
+    if (!numero_comparar_modulo(numero1, numero2, &mod_ref))
+        return NULL;
+
+    if((numero1->sinal == 1 && numero2->sinal == 1)||(numero1->sinal == 0 && numero2->sinal == 0)){
+        resultado = somar_modulos(numero1, numero2);
+        if(!resultado) return NULL;
+
+    } else{
+        switch(mod_ref){
+            case 1:
+                resultado = subtrair_modulos(numero1,numero2);
+                if(!resultado) return NULL;
+                resultado->sinal = numero1->sinal;
+                break;
+
+            case -1:
+                resultado = subtrair_modulos(numero2,numero1);
+                if(!resultado) return NULL;
+                resultado->sinal = numero2->sinal;
+                break;
+            case 0:
+                resultado = numero_criar(1);
+                if(!resultado) return NULL;
+                if (!numero_inserir_bloco(resultado, 0))
+                {
+                    numero_destruir(&resultado);
+                    return NULL;
+                }
+                break;
+        }   
+    }
+
+    return resultado;
 }
